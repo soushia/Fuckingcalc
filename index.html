@@ -1,658 +1,733 @@
-import { useState } from “react”;
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chapter 4 — Calculus Study Guide</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; min-height: 100vh; }
+  #app { max-width: 780px; margin: 0 auto; padding: 20px 16px; }
+
+/* HOME */
+.home-header { text-align: center; margin-bottom: 32px; }
+.home-header .sub { font-size: 12px; color: #94a3b8; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+.home-header h1 { font-size: 26px; color: #1e293b; font-weight: 800; margin-bottom: 10px; }
+.home-header p { color: #64748b; font-size: 15px; margin-bottom: 24px; }
+.quiz-btn { background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff; border: none; border-radius: 12px; padding: 14px 32px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px #6366f150; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(320px,1fr)); gap: 14px; margin-bottom: 24px; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; cursor: pointer; text-align: left; transition: box-shadow .15s, border-color .15s; }
+.card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.1); border-color: #c7d2fe; }
+.card .emoji { font-size: 30px; margin-bottom: 10px; }
+.card .section-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; letter-spacing: .01em; }
+.card p { font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 14px; }
+.card .arrow { font-size: 12px; font-weight: 600; }
+
+.gotchas { background: #fff; border-radius: 16px; padding: 24px; border: 1px solid #e2e8f0; }
+.gotchas h3 { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 16px; }
+.gotcha-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+.gotcha-tag { color: #fff; border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 700; white-space: nowrap; margin-top: 1px; flex-shrink: 0; }
+.gotcha-tip { font-size: 14px; color: #475569; line-height: 1.5; }
+
+/* SECTION DETAIL */
+.back-btn { padding: 8px 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 14px; color: #374151; margin-bottom: 20px; }
+.section-hero { border-radius: 16px; padding: 24px; margin-bottom: 20px; color: #fff; }
+.section-hero .emoji { font-size: 36px; margin-bottom: 10px; }
+.section-hero h2 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+.section-hero p { font-size: 15px; line-height: 1.6; opacity: .93; }
+
+.tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab-btn { padding: 9px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 400; border: 1px solid #e2e8f0; background: #fff; color: #475569; }
+.tab-btn.active { color: #fff; border: none; box-shadow: 0 2px 8px rgba(0,0,0,.15); font-weight: 600; }
+
+.code-block { background: #0f172a; border-radius: 14px; padding: 24px; overflow-x: auto; }
+.code-block pre { color: #e2e8f0; font-family: ‘Courier New’, monospace; font-size: 13px; line-height: 1.8; white-space: pre-wrap; }
+.code-block.green pre { color: #86efac; }
+
+.formula-list { display: flex; flex-direction: column; gap: 10px; }
+.formula-item { background: #fff; border-radius: 8px; padding: 13px 16px; font-family: ‘Courier New’, monospace; font-size: 14px; color: #1e293b; line-height: 1.5; }
+
+.tips-list { display: flex; flex-direction: column; gap: 10px; }
+.tip-item { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 13px 16px; font-size: 14px; color: #1e293b; line-height: 1.6; }
+
+/* QUIZ */
+.quiz-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.quiz-header h2 { font-size: 18px; color: #1e293b; font-weight: 700; }
+.score-badge { margin-left: auto; background: #6366f1; color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+.result-box { border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; text-align: center; }
+.result-box .big { font-size: 40px; margin-bottom: 8px; }
+.result-box .score { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+.result-box .msg { font-size: 14px; color: #374151; }
+
+.q-card { background: #fff; border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.q-num { font-size: 12px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+.q-text { font-weight: 600; color: #1e293b; line-height: 1.5; margin-bottom: 12px; }
+.choice-btn { display: block; width: 100%; text-align: left; padding: 11px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 14px; line-height: 1.5; transition: all .15s; background: #f8fafc; border: 2px solid #e2e8f0; color: #374151; }
+.choice-btn.correct { background: #dcfce7; border-color: #16a34a; color: #166534; }
+.choice-btn.wrong { background: #fee2e2; border-color: #dc2626; color: #991b1b; }
+.choice-btn:disabled { cursor: default; }
+.explanation { margin-top: 10px; padding: 10px 14px; border-radius: 8px; font-size: 13px; color: #374151; line-height: 1.5; }
+.explanation.good { background: #f0fdf4; border: 1px solid #bbf7d0; }
+.explanation.bad { background: #fff7ed; border: 1px solid #fed7aa; }
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+
+<script>
 const sections = [
-{
-id: “41”,
-title: “4.1 Related Rates”,
-color: “#6366f1”,
-emoji: “⏱️”,
-concept: “Two things are changing at the same time. Find how fast one is changing given how fast the other is.”,
-visual: `
-THINK OF IT LIKE THIS:
+  {
+    id:"41", title:"4.1 Related Rates", color:"#6366f1", emoji:"⏱️",
+    concept:"Two things are changing at the same time. Find how fast one is changing given how fast the other is.",
+    visual:`THINK OF IT LIKE THIS:
 
-```
-  You're blowing up a balloon 🎈
-  ┌─────────────────────────────────┐
-  │  Volume growing → Radius grows  │
-  │  dV/dt is given                 │
-  │  Find: dr/dt                    │
-  └─────────────────────────────────┘
-  
-  THE 4-STEP METHOD:
-  ① Draw & label variables (don't plug in numbers yet!)
-  ② Write equation relating them (V = 4/3πr³)
-  ③ Differentiate BOTH sides with respect to t
-  ④ NOW plug in numbers, solve for unknown rate
-  
-  ⚠️  COMMON MISTAKE: Plugging in numbers BEFORE differentiating!
-`,
-formulas: [
-  "Sphere: V = 4/3πr³,  S = 4πr²",
-  "Cylinder: V = πr²h",
-  "Cone: V = 1/3πr²h",
-  "Pythagorean: a² + b² = c²",
-  "Trig: sin θ = opp/hyp,  cos θ = adj/hyp,  tan θ = opp/adj",
-],
-tricks: [
-  "For spheres: dS/dt = 8πr·(dr/dt)",
-  "For cylinders with fixed r: dV/dt = πr²·(dh/dt)",
-  "Ladder problems: use x² + y² = L², differentiate → 2x(dx/dt) + 2y(dy/dt) = 0",
-  "Angle problems: use sin/cos/tan, then differentiate with chain rule",
-],
-example: `Snowball melts: dS/dt = -4 cm²/min, diameter = 5cm
-```
+You're blowing up a balloon 🎈
+┌─────────────────────────────────┐
+│  Volume growing → Radius grows  │
+│  dV/dt is given → Find: dr/dt   │
+└─────────────────────────────────┘
 
-① S = 4πr², diameter d = 2r
+THE 4-STEP METHOD:
+① Draw & label variables (don't plug in numbers yet!)
+② Write equation relating them  (V = 4/3πr³)
+③ Differentiate BOTH sides with respect to t
+④ NOW plug in numbers, solve for unknown rate
+
+⚠️  #1 MISTAKE: Plugging in numbers BEFORE differentiating!
+
+COMMON SETUPS:
+Sphere:    dV/dt = 4πr²·(dr/dt)
+           dS/dt = 8πr ·(dr/dt)
+Cylinder:  dV/dt = πr² ·(dh/dt)   ← fixed radius
+Ladder:    x² + y² = L²
+           2x(dx/dt) + 2y(dy/dt) = 0
+Angle:     sin θ = y/L
+           cos θ·(dθ/dt) = (1/L)·(dy/dt)`,
+    formulas:[
+      "Sphere: V = 4/3πr³,  S = 4πr²",
+      "Cylinder: V = πr²h",
+      "Cone: V = 1/3πr²h",
+      "Pythagorean: a² + b² = c²",
+      "Chain Rule: d/dt[f(r)] = f'(r) · dr/dt",
+    ],
+    tricks:[
+      "Plug in numbers AFTER differentiating — the #1 exam mistake is doing it before",
+      "Diameter d = 2r, so dd/dt = 2·dr/dt",
+      "Ladder: differentiate x²+y²=L² → 2x(dx/dt)+2y(dy/dt)=0",
+      "Cylinder with fixed radius: only h changes → dV/dt = πr²·(dh/dt)",
+      "Angle problems: pick trig function based on which sides are given",
+    ],
+    example:`Snowball: dS/dt = -4 cm²/min, diameter = 5 cm
+① S = 4πr²,  d = 2r  →  r = 5/2 = 2.5
 ② dS/dt = 8πr · dr/dt
-③ r = 5/2 = 2.5
-④ -4 = 8π(2.5) · dr/dt
-dr/dt = -4/(20π) = -1/(5π)
-dd/dt = 2·dr/dt = -2/(5π) ≈ -0.127 cm/min`, }, { id: "42", title: "4.2 Linear Approx & Differentials", color: "#8b5cf6", emoji: "📏", concept: "Zoom in close enough on ANY smooth curve and it looks like a straight line. Use that line to estimate.", visual: `
-ZOOM IN ON A CURVE:
+③ -4 = 8π(2.5) · dr/dt
+   dr/dt = -1/(5π)
+④ dd/dt = 2·dr/dt = -2/(5π) ≈ -0.127 cm/min
 
-```
-  y                    
-  │    actual curve  
-  │   ╱╲             ← far away: curved
-  │  ╱  ╲            
-  │ ╱    ╲           
-  └──────────── x    
-  
-  ZOOM IN at point a:
-  y                    
-  │  ╱ ← tangent line (looks same as curve!)
-  │ ╱  
-  │╱   
-  └──────────── x    
-  
-  LINEARIZATION FORMULA:
-  L(x) = f(a) + f'(a)(x - a)
-          ↑         ↑
-       y-value    slope × distance from a
-  
-  DIFFERENTIALS — what's the difference?
-  
-       x    x+Δx
-       │     │
-  ─────┼─────┼─────  ← x-axis
-       │
-  Δy = actual change in curve = f(x+Δx) - f(x)
-  dy  = change along tangent  = f'(x)·dx
-  
-  dy ≈ Δy  (better approximation when dx is small)
-`,
-formulas: [
-  "Linearization: L(x) = f(a) + f'(a)(x - a)",
-  "Differential: dy = f'(x) dx",
-  "Actual change: Δy = f(x+Δx) - f(x)",
-  "Relative error: ΔQ/Q ≈ dQ/Q",
-  "Percentage error: relative error × 100%",
-],
-tricks: [
-  "Pick a = 'nice' number close to what you're estimating",
-  "√(1-x) at a=0: L(x) = 1 - x/2 → √0.9 ≈ 1 - 0.1/2 = 0.95",
-  "For cube V=x³: dV = 3x²dx → max error = 3x²(error in x)",
-  "Relative error of V = 3 × relative error of side length",
-],
-example: `Find √0.9 using linear approx of f(x)=√(1-x) at a=0:
-```
+Ladder: top slides at -2 ft/s, θ = π/3, L = 10:
+sin θ = y/10  →  cos θ·(dθ/dt) = (1/10)·(dy/dt)
+cos(π/3)·(dθ/dt) = (1/10)(-2)
+(1/2)·(dθ/dt) = -1/5
+dθ/dt = -2/5 rad/s`
+  },
+  {
+    id:"42", title:"4.2 Linear Approx & Differentials", color:"#8b5cf6", emoji:"📏",
+    concept:"Zoom in close enough on any smooth curve and it looks like a straight line. Use that line to approximate nearby values.",
+    visual:`ZOOM IN ON A CURVE:
 
+Far away: clearly curved      Zoomed in at point a:
+y                             y
+│    ╭──╮                     │  ╱ ← tangent line
+│   ╱    ╲                    │ ╱    looks just like
+│  ╱      ╲                   │╱     the curve!
+└──────────── x               └──────────── x
+
+LINEARIZATION FORMULA:
+L(x) = f(a) + f'(a)(x - a)
+        ↑         ↑
+     y-value    slope × distance from a
+(This is just the tangent line equation!)
+
+DIFFERENTIALS — the difference visualized:
+
+      P───────S      ← dx = Δx (horizontal)
+      │  Δy ↕ │ dy  ← Δy = actual curve rise
+      │       ↕     ← dy = tangent line rise
+      x     x+Δx
+
+dy = f'(x) · dx      ← tangent line rise (easy to compute)
+Δy = f(x+Δx) - f(x) ← actual curve rise (exact but harder)
+dy ≈ Δy  when dx is small
+
+ERROR PROPAGATION:
+If Q = f(x), measurement error = dx
+Max error in Q  ≈  dQ = f'(x) dx
+Relative error   =  dQ / Q
+Percentage error =  (dQ / Q) × 100%`,
+    formulas:[
+      "Linearization: L(x) = f(a) + f'(a)(x - a)",
+      "Differential: dy = f'(x) dx",
+      "Actual change: Δy = f(x+Δx) - f(x)",
+      "Relative error: dQ / Q",
+      "Percentage error: (dQ / Q) × 100%",
+    ],
+    tricks:[
+      "Pick a = 'nice' number close to your target (e.g. a=0 for √(1-x))",
+      "√(1-x) at a=0: L(x) = 1 - x/2  →  √0.9 ≈ 1 - 0.05 = 0.95",
+      "Cube V=x³: dV = 3x²dx. Edge=10, error=0.1 → dV = 3(100)(0.1) = 30 cm³",
+      "Relative error of V = 3 × relative error of side (since dV/V = 3dx/x)",
+      "dy is faster to compute; Δy is the exact actual change",
+    ],
+    example:`Find √0.9 using f(x) = √(1-x) at a = 0:
 f(0) = 1
-f’(x) = -1/(2√(1-x)) → f’(0) = -1/2
-L(x) = 1 + (-1/2)(x - 0) = 1 - x/2
-√0.9 = √(1-0.1) ≈ L(0.1) = 1 - 0.05 = 0.95 ✓`, }, { id: "43", title: "4.3 Maxima and Minima", color: "#ec4899", emoji: "⛰️", concept: "Find the highest and lowest points of a function — either the global champs (absolute) or local neighborhood champs (local).", visual: `
-ABSOLUTE vs LOCAL:
+f'(x) = -1/(2√(1-x))  →  f'(0) = -1/2
+L(x) = 1 + (-1/2)(x-0) = 1 - x/2
+√0.9 = √(1-0.1) ≈ L(0.1) = 1 - 0.05 = 0.95 ✓
 
-```
-  y ↑
-    │     LOCAL MAX          ABSOLUTE MAX
-    │        ▲                    ▲
-    │       ╱ ╲               ╱╲╱ ╲
-    │      ╱   ╲             ╱         ╲
-    │─────╱─────╲───────────╱───────────╲── x
-    │            ╲         ╱              ╲
-    │      LOCAL  ╲       ╱               ENDPOINT
-    │       MIN    ╲─────╱                (abs min)
-    │
-    
-  KEY DISTINCTION:
-  ┌────────────────┬────────────────────────────┐
-  │  ABSOLUTE      │  Biggest/smallest OVERALL  │
-  │  (global)      │  Can occur at endpoint ✓   │
-  ├────────────────┼────────────────────────────┤
-  │  LOCAL         │  Biggest/smallest NEARBY   │
-  │                │  CANNOT occur at endpoint! │
-  └────────────────┴────────────────────────────┘
-  
-  EXTREME VALUE THEOREM:
-  f continuous on CLOSED [a,b] → abs max AND min guaranteed!
-  
-  CRITICAL NUMBERS — WHERE to look:
-  f'(c) = 0   OR   f'(c) DNE  (and c is in domain)
-  
-  CLOSED INTERVAL METHOD (finding abs max/min):
+Cube edge = 10 cm, error dx = 0.1 cm:
+V = x³  →  dV = 3x²dx = 3(100)(0.1) = 30 cm³
+Relative error  = dV/V = 30/1000 = 0.03
+Percentage error = 3%`
+  },
+  {
+    id:"43", title:"4.3 Maxima and Minima", color:"#ec4899", emoji:"⛰️",
+    concept:"Find the highest and lowest points — global champions (absolute) or neighborhood champions (local).",
+    visual:`ABSOLUTE vs LOCAL — THE KEY DIFFERENCE:
+
+y ↑
+  │     LOCAL MAX              ABSOLUTE MAX
+  │        ▲                       ▲
+  │       ╱ ╲                  ╱╲╱ ╲
+  │─────╱─────╲──────────────╱───────────╲──── x
+  │             ╲            ╱              ╲
+  │      LOCAL   ╲          ╱               ENDPOINT
+  │       MIN     ╲────────╱                (abs min)
+
+┌────────────────┬─────────────────────────────────┐
+│  ABSOLUTE      │  Biggest/smallest OVERALL        │
+│  (global)      │  ✓ CAN occur at endpoint         │
+├────────────────┼─────────────────────────────────┤
+│  LOCAL         │  Biggest/smallest in a WINDOW    │
+│                │  ✗ CANNOT occur at endpoint      │
+└────────────────┴─────────────────────────────────┘
+
+EXTREME VALUE THEOREM (EVT):
+f continuous on CLOSED [a,b]  →  abs max AND min GUARANTEED
+
+CRITICAL NUMBERS — candidates for extrema:
+  f'(c) = 0   OR   f'(c) DNE   (and c must be in domain)
+
+CLOSED INTERVAL METHOD — 3 steps:
   ① Find all critical numbers in (a,b)
-  ② Evaluate f at each critical number + both endpoints
-  ③ Biggest value = abs max, Smallest = abs min
-`,
-formulas: [
-  "Critical number: f'(c) = 0 OR f'(c) DNE",
-  "Closed Interval Method: compare f(critical pts) and f(endpoints)",
-  "EVT: continuous on [a,b] → abs max and min exist",
-],
-tricks: [
-  "Check EVT: need CONTINUOUS + CLOSED interval",
-  "x > 0 alone is open → EVT does NOT apply",
-  "[0,∞) is not bounded → EVT does NOT apply",
-  "Critical numbers are CANDIDATES, not guaranteed max/min",
-],
-example: `f(x) = x + 2cos(x) on [π/2, π]:
-```
+  ② Evaluate f at critical numbers + BOTH endpoints
+  ③ Biggest value = abs max,  Smallest = abs min
 
-① f’(x) = 1 - 2sin(x) = 0 → sin(x) = 1/2 → x = π/6 (NOT in interval)
-No critical numbers in (π/2, π)
-② Evaluate endpoints only:
-f(π/2) = π/2 + 0 = π/2 ≈ 1.571
-f(π)   = π - 2 ≈ 1.142
-③ Abs max = π/2,  Abs min = π - 2`, }, { id: "44", title: "4.4 Mean Value Theorem", color: "#f59e0b", emoji: "📐", concept: "If you drive 180 miles in 2 hours, your speedometer must have hit 90 mph at least once. That's the MVT.", visual: `
-VISUAL OF MVT:
+EVT CHECKLIST:
+  ✓ Continuous on the interval?
+  ✓ CLOSED bounded interval [a,b]?
+  → YES to both = EVT applies`,
+    formulas:[
+      "Critical number: f'(c) = 0  OR  f'(c) DNE  (c in domain)",
+      "Closed Interval Method: evaluate f at critical pts + endpoints",
+      "EVT: f continuous on [a,b]  →  abs max and min exist",
+    ],
+    tricks:[
+      "EVT needs CONTINUOUS + CLOSED bounded interval — both required",
+      "x > 0 is an open interval → EVT does NOT apply",
+      "[0,∞) is unbounded → EVT does NOT apply",
+      "Critical numbers are candidates only — no guaranteed extremum",
+      "For f(x)=xe^(-2x): product rule → e^(-2x)(1-2x)=0 → x=1/2",
+    ],
+    example:`f(x) = x/(x²-x+1) on [0,3]:
+① f'(x) = (1-x²)/(x²-x+1)²  →  set =0  →  x=1 ✓ in (0,3)
+② Evaluate at critical number + endpoints:
+   f(0) = 0
+   f(1) = 1/(1-1+1) = 1   ← largest
+   f(3) = 3/7 ≈ 0.43
+③ Abs max = 1 at x=1,   Abs min = 0 at x=0
 
-```
-  y ↑        B(b, f(b))
-    │       ╱•──────────  ← secant line slope = [f(b)-f(a)]/(b-a)
-    │      ╱    ╲         
-    │     ╱  •   ╲       ← tangent at c has SAME slope as secant!
-    │    ╱ (c,f(c))╲     
-    │───•────────────•── x
-        A(a,f(a))    B
-  
-  ROLLE'S THEOREM (special case of MVT):
-  If f(a) = f(b), then somewhere in between f'(c) = 0
-  
-  y ↑     same height!
-    │  •──────────────•   ← f(a) = f(b)
-    │ ╱  •            ╲   ← horizontal tangent somewhere (f'(c)=0)
-    │╱                  ╲
-    └──────────────────── x
-       a       c        b
-  
-  CHECKLIST — ROLLE'S:          CHECKLIST — MVT:
-  ✓ Continuous on [a,b]          ✓ Continuous on [a,b]
-  ✓ Differentiable on (a,b)      ✓ Differentiable on (a,b)
-  ✓ f(a) = f(b)                  (no equal values needed)
-  → f'(c) = 0 for some c         → f'(c) = [f(b)-f(a)]/(b-a)
-  
-  ⚠️  tan(x) on [0,π] → FAILS! (discontinuity at π/2)
-  ⚠️  f(x) = (x²-4)/x on [-1,1] → FAILS! (discontinuity at 0)
-`,
-formulas: [
-  "MVT: f'(c) = [f(b) - f(a)] / (b - a)",
-  "Rolle's: f(a) = f(b) → f'(c) = 0",
-],
-tricks: [
-  "Always verify BOTH hypotheses before applying",
-  "tan x fails on [0,π] — discontinuity at x = π/2",
-  "Any function with hole or asymptote in interval → fails",
-  "To find c: set f'(x) = slope of secant, solve for x",
-],
-example: `f(x) = 1/x on [1,3]:
-```
+EVT check examples:
+C(x) = 5x + 2000/x, x>0  →  OPEN interval  →  NO
+V(h) = πh-(π/4)h³, [0,2]  →  closed & cont.  →  YES`
+  },
+  {
+    id:"44", title:"4.4 Mean Value Theorem", color:"#f59e0b", emoji:"📐",
+    concept:"Drive 180 miles in 2 hours → your speedometer must hit exactly 90 mph at some point. That's the MVT.",
+    visual:`MEAN VALUE THEOREM:
 
-① Continuous & differentiable on [1,3] ✓ (0 not in interval)
-② Secant slope = (1/3 - 1)/(3-1) = (-2/3)/2 = -1/3
-③ f’(x) = -1/x² = -1/3
-x² = 3 → x = √3 ≈ 1.73 ∈ (1,3) ✓
-Answer: c = √3`, }, { id: "45", title: "4.5 Shape of Graph (f' and f'')", color: "#10b981", emoji: "📈", concept: "f' tells you whether the function goes up or down. f'' tells you whether it curves up (smile) or down (frown).", visual: `
-WHAT f’ TELLS YOU:
+y ↑            P(c, f(c))
+  │           •            ← tangent here has
+  │          ╱╲              SAME slope as secant AB
+  │         ╱  ╲
+  │────────•────────────•── x
+       A(a,f(a))    B(b,f(b))
 
-```
-  f'(x) > 0  →  function INCREASING  ↗
-  f'(x) < 0  →  function DECREASING  ↘
-  f'(x) = 0  →  horizontal tangent   →
-  
-  WHAT f'' TELLS YOU:
-  
-  f''(x) > 0  →  CONCAVE UP    ∪  (holds water, "Mr. Smiley")
-  f''(x) < 0  →  CONCAVE DOWN  ∩  (spills water, "Mr. Frowny")
-  
-  FIRST DERIVATIVE TEST (local max/min):
-  
-  At critical number c:
-  (+) → (−) through c  →  LOCAL MAX  ▲
-  (−) → (+) through c  →  LOCAL MIN  ▼
-  no sign change        →  neither
-  
-  SECOND DERIVATIVE TEST (local max/min):
-  
-  f'(c) = 0 AND f''(c) > 0  →  LOCAL MIN  ∪
-  f'(c) = 0 AND f''(c) < 0  →  LOCAL MAX  ∩
-  f'(c) = 0 AND f''(c) = 0  →  INCONCLUSIVE (use 1st test)
-  
-  INFLECTION POINT: where concavity CHANGES
-  (must actually change sign — just being zero isn't enough!)
-  
-  HOW TO DO SIGN ANALYSIS:
-  
-  Step 1: Find where f'=0 or f' DNE
-  Step 2: Mark those x-values on number line
-  Step 3: Pick test point in each interval
-  Step 4: Determine sign (+/-) in each interval
-  
-  ────────┬──────────┬───────────
-    (−)   │    (+)   │   (−)
-  ────────┴──────────┴───────────
-         x=−1       x=1
-          ↓           ↓
-       local       local
-        min         max
-`,
-formulas: [
-  "I/D Test: f'>0 → increasing, f'<0 → decreasing",
-  "Concavity: f''>0 → concave up, f''<0 → concave down",
-  "Inflection point: f'' changes sign",
-  "2nd Deriv Test: f'(c)=0, f''(c)>0 → min; f''(c)<0 → max",
-],
-tricks: [
-  "For f''>0: think smiley face ∪, holds water",
-  "Inflection needs sign CHANGE in f'', not just f''=0",
-  "2nd test inconclusive when f''=0 → use 1st test",
-  "f'(x)=xe^(-2x): use product rule, e^x never =0",
-],
-example: `f(x) = x³ - 6x² - 15x
-```
+f'(c) = [f(b) - f(a)] / (b - a)
+          ↑ average rate of change over [a,b]
 
-f’(x) = 3x² - 12x - 15 = 3(x-5)(x+1)
-Critical: x = 5, x = -1
+ROLLE'S THEOREM (special case — same endpoints):
 
-f’’(x) = 6x - 12
-f’’(5) = 18 > 0 → LOCAL MIN, f(5) = -100
-f’’(-1) = -18 < 0 → LOCAL MAX, f(-1) = 8
+y ↑    same height!
+  │  •──────────────•   ← f(a) = f(b)
+  │ ╱   •           ╲   ← flat tangent somewhere (f'(c)=0)
+  │╱                 ╲
+  └──────────────────── x
+     a       c        b
 
-Sign chart of f’:
-────────┬──────────┬────────
-(+)   │   (−)    │  (+)
-────────┴──────────┴────────
-x=-1       x=5
-Inc: (-∞,-1)∪(5,∞)  Dec: (-1,5)`, }, { id: "46", title: "4.6 Limits at Infinity", color: "#0ea5e9", emoji: "🔭", concept: "What happens to f(x) as x gets HUGE (→∞) or HUGELY NEGATIVE (→-∞)? This gives horizontal asymptotes.", visual: `
-HORIZONTAL ASYMPTOTE = what y approaches at the far ends
+CHECKLIST:
+        ROLLE'S                   MVT
+  ✓ continuous on [a,b]     ✓ continuous on [a,b]
+  ✓ differentiable on (a,b) ✓ differentiable on (a,b)
+  ✓ f(a) = f(b)             (no equal values needed)
+  → f'(c) = 0               → f'(c) = [f(b)-f(a)]/(b-a)
 
-```
-  y ↑          y=L ←── horizontal asymptote
-    │   _______________
-    │  ╱                 ← curve approaching y=L
-    │ ╱
-    │╱
-    └────────────────── x
-  
-  KEY FACT: lim(1/xⁿ) = 0 as x→±∞ (for n > 0)
-  
-  SHORTCUT FOR RATIONAL FUNCTIONS:
-  Compare degrees of top and bottom:
-  
-  ┌──────────────────┬──────────────────────────────┐
-  │ degree top <     │  limit = 0                   │
-  │ degree bottom    │  (bottom wins)               │
-  ├──────────────────┼──────────────────────────────┤
-  │ degree top =     │  limit = ratio of leading    │
-  │ degree bottom    │  coefficients                │
-  ├──────────────────┼──────────────────────────────┤
-  │ degree top >     │  limit = ±∞                  │
-  │ degree bottom    │  (top wins)                  │
-  └──────────────────┴──────────────────────────────┘
-  
-  SQUARE ROOT TRICK (tricky case!):
-  √(x²) = |x| = x if x≥0, but -x if x<0!
-  
-  lim(x→-∞) √(2x²-1)/(x+3):
-  = lim -√(2x²) / x    ← negative because x<0
-  = lim -|x|√2 / x
-  = lim -(-x)√2 / x    ← x<0 so |x|=-x
-  = √2
-  
-  POLYNOMIAL SHORTCUT:
-  Only the LEADING TERM matters!
-  lim(x→∞) (5+2x-3x⁷) = lim(-3x⁷) = -∞
-`,
-formulas: [
-  "H.A. at y=L if lim f(x)=L as x→∞ or x→-∞",
-  "lim(1/xʳ) = 0 for r > 0",
-  "Same degree: limit = leading coeff ratio",
-  "√(x²) = |x| = x (x≥0) or -x (x<0)",
-],
-tricks: [
-  "Polynomial: just look at highest degree term",
-  "Rational: divide by highest power in denominator",
-  "Square roots with x→-∞: √(x²) = -x (negative!)",
-  "lim sin(x) as x→∞ = DNE (oscillates forever)",
-],
-example: `lim(x→-∞) √(2x²-1)/(x+3):
-```
+FAILS WHEN:
+  ✗ tan(x) on [0,π]     → discontinuity at x=π/2
+  ✗ (x²-4)/x on [-1,1]  → discontinuity at x=0
+  ✗ |x| on [-1,1]       → not differentiable at x=0`,
+    formulas:[
+      "MVT: f'(c) = [f(b) - f(a)] / (b - a)",
+      "Rolle's: f(a) = f(b)  →  f'(c) = 0  for some c in (a,b)",
+      "To find c: set f'(x) = secant slope, then solve for x",
+    ],
+    tricks:[
+      "Always verify BOTH hypotheses before applying — state them explicitly",
+      "tan x on [0,π]: fails! Discontinuity at x=π/2 is inside the interval",
+      "(x²-4)/x on [-1,1]: fails! x=0 is in [-1,1], not continuous there",
+      "After finding c, verify it's actually inside the OPEN interval (a,b)",
+      "For Rolle's: first confirm f(a)=f(b), then find where f'=0",
+    ],
+    example:`Rolle's: f(x) = x³-2x²-4x+2 on [-2,2]
+✓ Polynomial → continuous & differentiable everywhere
+f(-2) = -8-8+8+2 = -6
+f(2)  =  8-8-8+2 = -6  ✓ equal!
+f'(x) = 3x²-4x-4 = 0
+x = [4 ± 8]/6  →  x=2 (excluded) or x=-2/3 ✓
+Answer: c = -2/3
 
-For x→-∞, divide by x (negative), so √(x²)=-x:
-= lim √(2x²-1) / (x+3)
-= lim (|x|√2) / x    [highest terms]
-= lim (-x)√2 / x     [x<0 so |x|=-x]
-= -√2`, }, { id: "47", title: "4.7 Applied Optimization", color: "#f97316", emoji: "🎯", concept: "Real-world problems: maximize area, minimize cost, find the best dimensions. Set up a function, find its absolute max or min.", visual: `
-THE OPTIMIZATION RECIPE:
+MVT: f(x) = 1/x on [1,3]
+✓ Continuous & differentiable on [1,3]
+Secant slope = (1/3-1)/(3-1) = -1/3
+f'(x) = -1/x² = -1/3  →  x²=3  →  c=√3 ≈ 1.73 ✓`
+  },
+  {
+    id:"45", title:"4.5 Shape of Graph", color:"#10b981", emoji:"📈",
+    concept:"f' tells you up or down. f'' tells you smiley (∪) or frowny (∩). Together they reveal everything about the curve.",
+    visual:`WHAT f' TELLS YOU:
 
-```
-  ① READ carefully. What are you maximizing/minimizing?
-  
-  ② DRAW & LABEL all variables
-  
-  ③ Write OBJECTIVE FUNCTION (what you're optimizing)
-     e.g. Area = length × width
-  
-  ④ Write CONSTRAINT equation
-     e.g. perimeter = 100 ft
-  
-  ⑤ USE CONSTRAINT to get objective function in ONE variable
-  
-  ⑥ FIND domain (what values make physical sense?)
-  
-  ⑦ OPTIMIZE using Closed Interval Method or 1st/2nd Deriv Test
-  
-  ⑧ JUSTIFY your answer (say WHY it's a max or min)
-  
-  CLASSIC SETUP — Fencing Problem:
-  
-      River (free!) 🌊
-  ════════════════════════
-  │                      │  width = y  ($5/ft)
-  │   Area = xy = 100    │
-  │                      │
-  └──────────────────────┘
-          x ($3/ft)
-  
-  Cost = 3x + 5(2y) = 3x + 10y
-  Constraint: xy = 100 → y = 100/x
-  Cost(x) = 3x + 1000/x
-  C'(x) = 3 - 1000/x² = 0 → x = √(1000/3)
-`,
-formulas: [
-  "Set objective function in one variable using constraint",
-  "Find critical numbers, check domain endpoints",
-  "Justify: 2nd deriv test or sign of f' changes",
-],
-tricks: [
-  "Always state the domain explicitly (e.g. x > 0)",
-  "Justify maximum/minimum — don't just find critical point",
-  "Vertical distance: D(x) = f(x) - g(x), then minimize",
-  "C''(x) > 0 confirms minimum cost",
-],
-example: `Min vertical distance: y=x²+1 vs y=x on [0,2]
-```
+f'(x) > 0  →  INCREASING   ↗
+f'(x) < 0  →  DECREASING   ↘
+f'(x) = 0  →  horizontal   ─
 
+WHAT f'' TELLS YOU:
+
+f''(x) > 0  →  CONCAVE UP    ∪  (Mr. Smiley, holds water)
+f''(x) < 0  →  CONCAVE DOWN  ∩  (Mr. Frowny, spills water)
+
+FIRST DERIVATIVE TEST — sign changes:
+
+  (+)→(−) at c  →  LOCAL MAX  ▲
+  (−)→(+) at c  →  LOCAL MIN  ▼
+  no sign change →  neither (inflection-ish)
+
+SIGN ANALYSIS PROCEDURE:
+① Find where f'=0 or f' DNE  (dividers)
+② Mark them on number line
+③ Pick test point in each region, check sign
+④ Apply I/D test
+
+  ─────────┬──────────┬─────────
+    f'(−)  │  f'(+)   │  f'(−)
+  ─────────┴──────────┴─────────
+           x=−1       x=2
+             ↓           ↓
+          local       local
+           min         max
+
+SECOND DERIVATIVE TEST (when f'(c)=0):
+f''(c) > 0  →  local MIN  ∪
+f''(c) < 0  →  local MAX  ∩
+f''(c) = 0  →  INCONCLUSIVE → use 1st Deriv Test
+
+INFLECTION POINT:
+f'' changes sign  ←  must CHANGE, not just equal zero!`,
+    formulas:[
+      "I/D Test: f'>0 → increasing,  f'<0 → decreasing",
+      "Concavity: f''>0 → concave up ∪,  f''<0 → concave down ∩",
+      "Inflection point: f continuous AND f'' changes sign",
+      "2nd Deriv Test: f'(c)=0 & f''(c)>0 → min;  f''(c)<0 → max",
+    ],
+    tricks:[
+      "Always draw a sign chart — prevents sign errors every time",
+      "f''>0 = smiley ∪ = holds water = CONCAVE UP",
+      "Inflection: f'' must CHANGE SIGN, not just equal zero at a point",
+      "2nd test inconclusive when f''=0 → switch to 1st Deriv Test",
+      "f(x)=xe^x: f''=e^x(2+x)=0 → x=-2 is the inflection point",
+    ],
+    example:`f(x) = x³ - 6x² - 15x
+f'(x) = 3x²-12x-15 = 3(x-5)(x+1)
+Critical numbers: x = 5,  x = -1
+
+Sign chart of f':
+─────┬──────────┬────────
+(+)  │   (−)    │  (+)
+─────┴──────────┴────────
+    x=-1       x=5
+
+Increasing: (-∞,-1)∪(5,∞)   Decreasing: (-1,5)
+
+2nd Derivative Test:
+f''(x) = 6x - 12
+f''(-1) = -18 < 0  →  LOCAL MAX,  f(-1) = 8
+f''(5)  =  18 > 0  →  LOCAL MIN,  f(5) = -100
+
+Concavity: f''=0 → x=2
+Inflection point: (2, f(2)) = (2, -34)`
+  },
+  {
+    id:"46", title:"4.6 Limits at Infinity", color:"#0ea5e9", emoji:"🔭",
+    concept:"What does f(x) approach as x→∞ or x→-∞? This gives horizontal asymptotes and end behavior.",
+    visual:`HORIZONTAL ASYMPTOTE = y approached at the far ends
+
+y ↑        y = L  ← horizontal asymptote
+  │  _____________________________________
+  │ ╱                  ← curve approaching L
+  │╱
+  └──────────────────────────────────── x
+
+SHORTCUT FOR RATIONAL FUNCTIONS:
+
+ degree top < degree bottom  →  limit = 0
+ degree top = degree bottom  →  ratio of leading coefficients
+ degree top > degree bottom  →  ±∞
+
+EXAMPLES:
+(3x²+x)/(5x²-2)  →  3/5    (same degree)
+(2x+1)/(x³+4x)   →  0      (top smaller)
+(x³-1)/(x²+1)    →  ∞      (top bigger)
+
+POLYNOMIAL END BEHAVIOR (only leading term matters):
+lim(x→∞) 5+2x-3x⁷ = lim(-3x⁷) = -∞
+
+THE SQUARE ROOT TRICK — biggest exam trap:
+
+√(x²) = |x| = { +x  if x ≥ 0
+               { -x  if x < 0   ← NEGATIVE when x→-∞!
+
+lim(x→-∞) √(2x²-1)/(x+3):
+Leading num: √(2x²) = |x|√2 = -x√2  (x is negative!)
+Leading den: x
+= (-x√2)/x = -√2    ← note the NEGATIVE
+
+Same problem as x→+∞ gives +√2  (different answer!)
+
+MEMORIZE:
+lim(x→-∞) eˣ = 0       lim(x→∞) eˣ = ∞
+lim(x→∞) sin x = DNE   (oscillates, never settles)`,
+    formulas:[
+      "H.A. at y=L if lim f(x)=L as x→∞ or x→-∞",
+      "lim(1/xʳ) = 0 as x→±∞  (r > 0)",
+      "Same degree rational → ratio of leading coefficients",
+      "√(x²) = |x| = x (x≥0)  or  -x (x<0)",
+    ],
+    tricks:[
+      "Same degree? Just divide leading coefficients — done",
+      "Top degree bigger? Limit is ±∞, determine sign from leading terms",
+      "x→-∞ with square root: √(x²) = -x, so answer flips sign!",
+      "lim sin(x) as x→∞ = DNE — it oscillates, never use L'H here",
+      "For asymptotes: set denominator=0 for vertical, limits at ±∞ for horizontal",
+    ],
+    example:`(a) lim(x→-∞) (2x²+x)/(x³+4x-1)
+    Degree 2 < Degree 3  →  0
+
+(b) lim(x→-∞) √(x²-25)/(2x-6)
+    Numerator leading: √(x²) = |x| = -x  (x→-∞)
+    = (-x)/(2x) = -1/2
+
+(c) lim(x→-∞) (3-x²)(x-5)(1-3x)
+    Leading: (-x²)(x)(-3x) = 3x⁴
+    lim 3x⁴ as x→-∞ = +∞
+
+Asymptotes of y=(1+x-3x⁴)/(x²-x⁴):
+H.A.: -3x⁴/(-x⁴) = 3  →  y = 3
+V.A.: x²(1-x)(1+x)=0  →  x=0, x=±1`
+  },
+  {
+    id:"47", title:"4.7 Applied Optimization", color:"#f97316", emoji:"🎯",
+    concept:"Maximize area, minimize cost, find best dimensions. Set up a function and use calculus to find its absolute max or min.",
+    visual:`THE OPTIMIZATION RECIPE:
+
+① READ: What quantity to maximize/minimize?
+② DRAW and label all variables
+③ Write OBJECTIVE FUNCTION  (what you're optimizing)
+④ Write CONSTRAINT equation  (the restriction given)
+⑤ Use constraint to eliminate a variable → ONE variable
+⑥ State the DOMAIN  (values that make physical sense)
+⑦ OPTIMIZE: Critical numbers + Closed Interval Method
+             OR 1st / 2nd Derivative Test
+⑧ JUSTIFY: explain why it's a max or min
+
+FENCING EXAMPLE SETUP:
+
+    River (no fence needed) 🌊
+═════════════════════════════════════
+│                                   │ width=y ($5/ft each)
+│         Area = xy = 100 ft²       │
+│                                   │
+└───────────────────────────────────┘
+               x  ($3/ft)
+
+Cost C = 3x + 5(2y) = 3x + 10y
+Constraint: xy = 100  →  y = 100/x
+C(x) = 3x + 1000/x     domain: x > 0
+C'(x) = 3 - 1000/x² = 0  →  x = 10√(10/3)
+C''(x) = 2000/x³ > 0  →  minimum confirmed ✓
+
+DISTANCE BETWEEN CURVES:
+Vertical distance D(x) = top curve - bottom curve
+Minimize D(x) → set D'(x) = 0`,
+    formulas:[
+      "Write objective in ONE variable using the constraint",
+      "Always state domain explicitly (e.g. x > 0, 0 < x < 90)",
+      "C''(c) > 0 confirms minimum;  C''(c) < 0 confirms maximum",
+      "Open domain: must use 1st or 2nd Deriv Test (not Closed Interval Method)",
+    ],
+    tricks:[
+      "State the domain before optimizing — it changes your approach",
+      "Justify your answer — saying 'minimum' requires proof (2nd deriv or sign change)",
+      "For distance problems: minimize D(x) = f(x) - g(x) on the given interval",
+      "Open domain → Closed Interval Method won't work, use deriv tests",
+      "Check: does your answer make physical sense? (no negative lengths/areas)",
+    ],
+    example:`Min vertical distance: y=x²+1 vs y=x on [0,2]
 D(x) = (x²+1) - x = x² - x + 1
-D’(x) = 2x - 1 = 0 → x = 1/2
-D’’(x) = 2 > 0 → minimum confirmed ✓
-D(1/2) = 1/4 - 1/2 + 1 = 3/4
-Check endpoints: D(0)=1, D(2)=3
-Minimum distance = 3/4 at x = 1/2`, }, { id: "48", title: "4.8 L'Hôpital's Rule", color: "#14b8a6", emoji: "🏥", concept: "When a limit gives 0/0 or ∞/∞ (indeterminate), differentiate top and bottom separately and try again.", visual: `
-WHEN TO USE IT:
+D'(x) = 2x - 1 = 0  →  x = 1/2  ∈ (0,2) ✓
+D''(x) = 2 > 0  →  minimum confirmed ✓
 
-```
-  Direct substitution gives → 0/0 or ∞/∞  ← L'H applies!
-  Direct substitution gives → 0/∞ or 3/0   ← L'H does NOT apply
-  
-  THE RULE:
-  If lim f(x)/g(x) gives 0/0 or ∞/∞, then:
-  
-  lim f(x)/g(x) = lim f'(x)/g'(x)
-  
-  ⚠️  Differentiate TOP and BOTTOM separately!
-      NOT the quotient rule!
-  
-  OTHER INDETERMINATE FORMS (need algebra first):
-  
-  ┌────────────┬───────────────────────────────────────┐
-  │ 0 · ∞      │ Rewrite as 0/(1/∞) or ∞/(1/0)        │
-  │            │ → gets to 0/0 or ∞/∞                  │
-  ├────────────┼───────────────────────────────────────┤
-  │ ∞ - ∞      │ Factor or find common denominator      │
-  ├────────────┼───────────────────────────────────────┤
-  │ 1^∞, 0⁰,  │ Take ln of both sides first:           │
-  │ ∞⁰         │ Let y = f(x)^g(x)                     │
-  │            │ ln y = g(x)·ln(f(x))  → 0·∞ form      │
-  └────────────┴───────────────────────────────────────┘
-  
-  EXAMPLE of 1^∞:  lim(1-2x)^(1/x) as x→0
-  Let y = (1-2x)^(1/x)
-  ln y = (1/x)·ln(1-2x) → 0/0 form
-  L'H: [-2/(1-2x)] / 1 → -2 as x→0
-  So y → e^(-2)
-`,
-formulas: [
-  "L'H Rule: lim f/g = lim f'/g' (when 0/0 or ∞/∞)",
-  "For 1^∞: let y=f^g, take ln y = g·ln(f), find limit of ln y, then e^(that limit)",
-  "For 0·∞: rewrite as fraction first",
-],
-tricks: [
-  "Check the form FIRST — if not 0/0 or ∞/∞, don't use L'H",
-  "Can apply L'H multiple times if still indeterminate",
-  "lim e^(2/x) / (3-x) as x→-∞: e^0/(∞) = 1/∞ = 0, no L'H needed",
-  "lim sin(5x)/sin(3x) = 5/3 (either L'H or sin(x)/x → 1)",
-],
-example: `lim(x→1) x·sin(x-1) / (2x²-x-1):
-```
+Closed Interval Method (check all):
+D(0)   = 0 - 0 + 1 = 1
+D(1/2) = 1/4 - 1/2 + 1 = 3/4  ← smallest!
+D(2)   = 4 - 2 + 1 = 3
 
-Plug in: 1·sin(0)/(0) = 0/0 ✓ → L’H applies
+Minimum vertical distance = 3/4  at  x = 1/2`
+  },
+  {
+    id:"48", title:"4.8 L'Hôpital's Rule", color:"#14b8a6", emoji:"🏥",
+    concept:"When a limit gives 0/0 or ∞/∞, differentiate top and bottom SEPARATELY — not quotient rule! — and try again.",
+    visual:`WHEN TO USE L'HÔPITAL'S:
 
-d/dx [x·sin(x-1)] = sin(x-1) + x·cos(x-1)
-d/dx [2x²-x-1] = 4x - 1
+Plug in → 0/0 or ∞/∞  →  L'H applies ✓
+Plug in → 5/0          →  vertical asymptote (not L'H)
+Plug in → 0/5          →  answer is just 0 (not L'H)
+Plug in → real number  →  you're done already!
 
-At x=1: (sin(0) + 1·cos(0))/(4-1) = (0+1)/3 = 1/3`,
-},
+THE RULE:
+If lim f(x)/g(x) = 0/0 or ∞/∞,  THEN:
+
+lim f(x)/g(x) = lim f'(x)/g'(x)
+
+⚠️  Differentiate TOP and BOTTOM separately!
+    This is NOT the quotient rule!
+
+OTHER INDETERMINATE FORMS (convert first):
+
+┌──────────┬────────────────────────────────────────┐
+│  0 · ∞   │ Rewrite: f·g = f/(1/g) or g/(1/f)     │
+│          │ → becomes 0/0 or ∞/∞                   │
+├──────────┼────────────────────────────────────────┤
+│  ∞ - ∞   │ Find common denominator or factor       │
+├──────────┼────────────────────────────────────────┤
+│  1^∞     │ Let y = expression                     │
+│  0⁰      │ Take ln: ln y = exponent · ln(base)    │
+│  ∞⁰      │ Find lim of ln y → call it L           │
+│          │ Answer = e^L                            │
+└──────────┴────────────────────────────────────────┘
+
+EXAMPLE (1^∞): lim(x→0) (1-2x)^(1/x)
+Let y = (1-2x)^(1/x)
+ln y = (1/x)·ln(1-2x)  →  0/0 ✓
+L'H: [-2/(1-2x)] / 1  →  -2  as x→0
+Answer: y → e^(-2)`,
+    formulas:[
+      "L'H: lim f/g = lim f'/g'  (ONLY when 0/0 or ∞/∞)",
+      "For 1^∞: y=f^g → ln y = g·ln(f) → find lim → answer = e^(limit)",
+      "For 0·∞: rewrite as f/(1/g) to get 0/0 or ∞/∞ form",
+      "Can apply L'H multiple times if still indeterminate",
+    ],
+    tricks:[
+      "CHECK THE FORM first — if not 0/0 or ∞/∞, do NOT use L'H",
+      "e^(2/x)/(3-x) as x→-∞: e^0/∞ = 1/∞ = 0, no L'H needed",
+      "sin(5x)/sin(3x) → 0/0, L'H: 5cos(5x)/3cos(3x) → 5/3",
+      "x²-eˣ as x→∞: eˣ dominates x², answer = -∞, no L'H needed",
+      "lim ln√x/x²: rewrite as (1/2)lnx/x² then apply L'H",
+    ],
+    example:`#29: lim(x→∞) ln√x / x²
+= lim (1/2)ln x / x²  →  ∞/∞ ✓
+L'H: (1/2·1/x) / (2x) = 1/(4x²) → 0 ✓
+
+#31: lim(x→1) x·sin(x-1) / (2x²-x-1)
+Plug in: 1·sin(0)/0 = 0/0 ✓  → L'H applies
+Numerator':   sin(x-1) + x·cos(x-1)
+Denominator': 4x - 1
+At x=1: (0 + 1·1)/(4-1) = 1/3 ✓
+
+#34: lim(x→0) (1-2x)^(1/x)  →  1^∞
+ln y = ln(1-2x)/x  →  0/0 ✓
+L'H: [-2/(1-2x)] / 1 → -2
+Answer: e^(-2) ✓`
+  },
 ];
 
-const QuizQuestion = ({ q, onAnswer, answered }) => {
-const [selected, setSelected] = useState(null);
-
-const handleSelect = (i) => {
-if (answered) return;
-setSelected(i);
-onAnswer(i === q.correct);
-};
-
-return (
-<div style={{ marginBottom: 16 }}>
-<p style={{ fontWeight: 600, marginBottom: 10, color: “#1e293b” }}>{q.question}</p>
-{q.choices.map((c, i) => {
-let bg = “#f1f5f9”;
-let border = “2px solid #e2e8f0”;
-if (selected !== null) {
-if (i === q.correct) { bg = “#dcfce7”; border = “2px solid #16a34a”; }
-else if (i === selected) { bg = “#fee2e2”; border = “2px solid #dc2626”; }
-}
-return (
-<button key={i} onClick={() => handleSelect(i)}
-style={{ display: “block”, width: “100%”, textAlign: “left”, padding: “10px 14px”,
-marginBottom: 6, background: bg, border, borderRadius: 8, cursor: answered ? “default” : “pointer”,
-fontSize: 14, color: “#1e293b”, transition: “all 0.2s” }}>
-{c}
-</button>
-);
-})}
-{selected !== null && (
-<p style={{ fontSize: 13, color: selected === q.correct ? “#16a34a” : “#dc2626”, marginTop: 6, fontStyle: “italic” }}>
-{selected === q.correct ? “✅ “ + q.explanation : “❌ “ + q.explanation}
-</p>
-)}
-</div>
-);
-};
-
-const quizQuestions = [
-{ question: “In related rates, when should you substitute numerical values?”, choices: [“Before differentiating”, “After differentiating”, “At the very beginning”, “Only for constants”], correct: 1, explanation: “Always differentiate first, THEN substitute. Plugging in too early is the #1 mistake.” },
-{ question: “The linearization L(x) of f at a is:”, choices: [“f(a) · f’(a)”, “f(a) + f’(a)(x-a)”, “f’(a)(x-a)”, “f(x) + f’(x)”], correct: 1, explanation: “L(x) = f(a) + f’(a)(x-a) — it’s just the tangent line equation!” },
-{ question: “A local minimum CAN occur at:”, choices: [“An endpoint”, “An interior critical point”, “Where f’(c) = 0”, “Both B and C”], correct: 3, explanation: “Local extrema occur at interior critical points (where f’=0 or DNE), never at endpoints.” },
-{ question: “The Extreme Value Theorem applies when f is:”, choices: [“Continuous on an open interval”, “Differentiable on a closed interval”, “Continuous on a closed interval”, “Any function on any interval”], correct: 2, explanation: “EVT requires CONTINUOUS on CLOSED [a,b]. Both conditions are essential.” },
-{ question: “Rolle’s Theorem requires f(a) = f(b). What does it guarantee?”, choices: [“f has an absolute max”, “f’(c) = 0 for some c in (a,b)”, “f is constant”, “f has no critical numbers”], correct: 1, explanation: “Rolle’s says: equal endpoints → horizontal tangent somewhere in between.” },
-{ question: “f’’(x) > 0 on an interval means:”, choices: [“f is increasing”, “f is decreasing”, “f is concave up (∪)”, “f is concave down (∩)”], correct: 2, explanation: “f’’>0 → concave up, like a smiley face ∪. Think: positive = holds water.” },
-{ question: “When does L’Hôpital’s Rule apply?”, choices: [“When limit = 0”, “When limit = ∞/∞ or 0/0”, “Always”, “When limit = 0·∞”], correct: 1, explanation: “L’H only applies directly to 0/0 or ∞/∞ forms. Other forms need algebra first.” },
-{ question: “lim(x→∞) (3x² + x)/(5x² - 2) = ?”, choices: [“0”, “∞”, “3/5”, “1/5”], correct: 2, explanation: “Same degree → ratio of leading coefficients = 3/5.” },
-{ question: “The Second Derivative Test is INCONCLUSIVE when:”, choices: [“f’(c) = 0”, “f’’(c) > 0”, “f’’(c) = 0”, “f’’(c) < 0”], correct: 2, explanation: “When f’’(c) = 0, the test fails. Use the First Derivative Test instead.” },
-{ question: “An inflection point occurs where:”, choices: [“f’(x) = 0”, “f’’(x) = 0”, “f’’ changes sign”, “f is increasing”], correct: 2, explanation: “f’’ must actually CHANGE SIGN (not just equal zero). That’s when concavity switches.” },
+const quiz = [
+  { q:"In related rates, WHEN should you substitute numerical values for quantities that change with time?", choices:["Before differentiating — set it up first","After differentiating both sides with respect to t","At the very beginning","Only for constants"], correct:1, ex:"Always differentiate FIRST, then substitute. Plugging in too early kills the rate terms — the #1 exam mistake." },
+  { q:"The linearization L(x) of f at a equals:", choices:["f(a) · f'(a)","f(a) + f'(a)(x − a)","f'(a)(x − a)","f(a) + f'(x)(x − a)"], correct:1, ex:"L(x) = f(a) + f'(a)(x-a). It's the tangent line equation at (a, f(a))." },
+  { q:"Which statement about extrema is TRUE?", choices:["Both local and absolute max can occur at endpoints","Local max CAN occur at an endpoint","Absolute max CAN occur at an endpoint, local max CANNOT","Neither can occur at an endpoint"], correct:2, ex:"Local extrema require an open interval around c — so endpoints are excluded. Absolute extrema CAN be at endpoints." },
+  { q:"The Extreme Value Theorem guarantees absolute max/min when f is:", choices:["Continuous on an open interval (a,b)","Differentiable on a closed interval [a,b]","Continuous on a closed bounded interval [a,b]","Any function on any closed interval"], correct:2, ex:"EVT needs CONTINUOUS on a CLOSED bounded interval. Both conditions are essential." },
+  { q:"Does f(x) = tan x satisfy Rolle's Theorem on [0, π]?", choices:["Yes — it's differentiable everywhere","Yes — f(0) = f(π) = 0","No — tan x is discontinuous at x = π/2 ∈ [0,π]","No — f(0) ≠ f(π)"], correct:2, ex:"tan x has a vertical asymptote at x=π/2, which is inside [0,π]. Rolle's requires continuity on the closed interval." },
+  { q:"f''(x) > 0 on an interval tells you:", choices:["f is increasing","f is decreasing","f is concave up ∪ — smiley face, holds water","f is concave down ∩ — frowny face, spills water"], correct:2, ex:"f''>0 means f' is increasing → curve bends upward → concave UP ∪. Positive = Mr. Smiley." },
+  { q:"The Second Derivative Test is INCONCLUSIVE when:", choices:["f'(c)=0 and f''(c)>0","f'(c)=0 and f''(c)<0","f'(c)≠0","f'(c)=0 and f''(c)=0"], correct:3, ex:"When f''(c)=0 the test tells you nothing. Switch to the First Derivative Test (sign change of f')." },
+  { q:"lim(x→∞) (3x² + x) / (5x² − 2) = ?", choices:["0","∞","3/5","1/5"], correct:2, ex:"Same degree top and bottom → ratio of leading coefficients = 3/5. Fastest shortcut: compare x² terms only." },
+  { q:"lim(x→−∞) √(x²−25) / (2x−6) = ?", choices:["1/2","−1/2","1/4","∞"], correct:1, ex:"Key trap: √(x²)=|x|=−x when x→−∞. So √(x²)/(2x) → (−x)/(2x) = −1/2. Don't forget the negative!" },
+  { q:"When does L'Hôpital's Rule directly apply?", choices:["When the limit equals zero","When the limit gives 0/0 or ∞/∞","Always, for any fraction","When the limit gives 0·∞"], correct:1, ex:"L'H applies ONLY to 0/0 or ∞/∞. Forms like 0·∞ need algebra first. Always check the form!" },
 ];
 
-export default function App() {
-const [activeSection, setActiveSection] = useState(null);
-const [activeTab, setActiveTab] = useState(“concept”);
-const [quizMode, setQuizMode] = useState(false);
-const [score, setScore] = useState(0);
-const [answered, setAnswered] = useState(0);
-const [quizAnswers, setQuizAnswers] = useState({});
+// STATE
+let state = { view:"home", section:null, tab:"concept", quizAnswers:{}, score:0, answered:0 };
 
-const handleAnswer = (qIndex, correct) => {
-if (quizAnswers[qIndex] !== undefined) return;
-setQuizAnswers(prev => ({ …prev, [qIndex]: correct }));
-setAnswered(a => a + 1);
-if (correct) setScore(s => s + 1);
-};
-
-if (quizMode) {
-return (
-<div style={{ fontFamily: “‘Inter’, system-ui, sans-serif”, maxWidth: 700, margin: “0 auto”, padding: 20 }}>
-<div style={{ display: “flex”, alignItems: “center”, gap: 12, marginBottom: 24 }}>
-<button onClick={() => { setQuizMode(false); setScore(0); setAnswered(0); setQuizAnswers({}); }}
-style={{ padding: “8px 16px”, background: “#f1f5f9”, border: “1px solid #e2e8f0”, borderRadius: 8, cursor: “pointer”, fontSize: 14 }}>
-← Back
-</button>
-<h2 style={{ margin: 0, color: “#1e293b” }}>📝 Test Yourself</h2>
-<div style={{ marginLeft: “auto”, background: “#6366f1”, color: “white”, padding: “6px 14px”, borderRadius: 20, fontSize: 14, fontWeight: 600 }}>
-{score}/{answered} correct
-</div>
-</div>
-{answered === quizQuestions.length && (
-<div style={{ background: score >= 8 ? “#dcfce7” : score >= 6 ? “#fef9c3” : “#fee2e2”,
-border: `2px solid ${score >= 8 ? "#16a34a" : score >= 6 ? "#ca8a04" : "#dc2626"}`,
-borderRadius: 12, padding: 16, marginBottom: 20, textAlign: “center” }}>
-<div style={{ fontSize: 32, marginBottom: 8 }}>{score >= 8 ? “🎉” : score >= 6 ? “📚” : “💪”}</div>
-<strong style={{ fontSize: 18 }}>{score}/10 — {score >= 8 ? “Test ready!” : score >= 6 ? “Review weak spots!” : “Keep studying!”}</strong>
-</div>
-)}
-{quizQuestions.map((q, i) => (
-<div key={i} style={{ background: “white”, borderRadius: 12, padding: 20, marginBottom: 16, boxShadow: “0 1px 6px rgba(0,0,0,0.08)” }}>
-<div style={{ fontSize: 12, color: “#94a3b8”, marginBottom: 8 }}>Question {i+1} of {quizQuestions.length}</div>
-<QuizQuestion q={q} onAnswer={(c) => handleAnswer(i, c)} answered={quizAnswers[i] !== undefined} />
-</div>
-))}
-</div>
-);
+function render() {
+  const app = document.getElementById("app");
+  if (state.view === "home") app.innerHTML = renderHome();
+  else if (state.view === "section") app.innerHTML = renderSection();
+  else if (state.view === "quiz") app.innerHTML = renderQuiz();
+  bindEvents();
 }
 
-if (activeSection) {
-const s = sections.find(x => x.id === activeSection);
-return (
-<div style={{ fontFamily: “‘Inter’, system-ui, sans-serif”, maxWidth: 800, margin: “0 auto”, padding: 20 }}>
-<button onClick={() => setActiveSection(null)}
-style={{ padding: “8px 16px”, background: “#f1f5f9”, border: “1px solid #e2e8f0”, borderRadius: 8, cursor: “pointer”, fontSize: 14, marginBottom: 20 }}>
-← All Sections
-</button>
-<div style={{ background: s.color, borderRadius: 16, padding: “20px 24px”, marginBottom: 20, color: “white” }}>
-<div style={{ fontSize: 32, marginBottom: 8 }}>{s.emoji}</div>
-<h2 style={{ margin: 0, fontSize: 22 }}>{s.title}</h2>
-<p style={{ margin: “10px 0 0”, opacity: 0.9, fontSize: 15 }}>{s.concept}</p>
-</div>
-<div style={{ display: “flex”, gap: 8, marginBottom: 20 }}>
-{[“concept”, “formulas”, “tricks”, “example”].map(tab => (
-<button key={tab} onClick={() => setActiveTab(tab)}
-style={{ padding: “8px 16px”, background: activeTab === tab ? s.color : “#f1f5f9”,
-color: activeTab === tab ? “white” : “#475569”, border: “none”, borderRadius: 8,
-cursor: “pointer”, fontSize: 13, fontWeight: activeTab === tab ? 600 : 400, textTransform: “capitalize” }}>
-{tab === “concept” ? “📊 Visual” : tab === “formulas” ? “📐 Formulas” : tab === “tricks” ? “💡 Tips” : “✏️ Example”}
-</button>
-))}
-</div>
-{activeTab === “concept” && (
-<div style={{ background: “#0f172a”, borderRadius: 12, padding: 24 }}>
-<pre style={{ color: “#e2e8f0”, fontFamily: “monospace”, fontSize: 14, lineHeight: 1.7, whiteSpace: “pre-wrap”, margin: 0 }}>
-{s.visual}
-</pre>
-</div>
-)}
-{activeTab === “formulas” && (
-<div style={{ display: “flex”, flexDirection: “column”, gap: 10 }}>
-{s.formulas.map((f, i) => (
-<div key={i} style={{ background: “white”, border: `2px solid ${s.color}20`, borderLeft: `4px solid ${s.color}`,
-borderRadius: 8, padding: “12px 16px”, fontFamily: “monospace”, fontSize: 14, color: “#1e293b” }}>
-{f}
-</div>
-))}
-</div>
-)}
-{activeTab === “tricks” && (
-<div style={{ display: “flex”, flexDirection: “column”, gap: 10 }}>
-{s.tricks.map((t, i) => (
-<div key={i} style={{ background: “#fffbeb”, border: “1px solid #fde68a”, borderRadius: 8, padding: “12px 16px”, fontSize: 14, color: “#1e293b” }}>
-💡 {t}
-</div>
-))}
-</div>
-)}
-{activeTab === “example” && (
-<div style={{ background: “#0f172a”, borderRadius: 12, padding: 24 }}>
-<pre style={{ color: “#86efac”, fontFamily: “monospace”, fontSize: 14, lineHeight: 1.7, whiteSpace: “pre-wrap”, margin: 0 }}>
-{s.example}
-</pre>
-</div>
-)}
-</div>
-);
+function renderHome() {
+  const cards = sections.map(s => `
+    <button class="card" data-section="${s.id}" style="border-top:4px solid ${s.color}">
+      <div class="emoji">${s.emoji}</div>
+      <div class="section-title" style="color:${s.color}">${s.title}</div>
+      <p>${s.concept}</p>
+      <span class="arrow" style="color:${s.color}">Visual + Formulas + Tips + Example →</span>
+    </button>`).join("");
+
+  const rows = [
+    {topic:"Related Rates", tip:"Plug in numbers AFTER differentiating — never before.", color:"#6366f1"},
+    {topic:"Local vs Absolute", tip:"Local extrema CANNOT be at endpoints. Absolute extrema CAN.", color:"#ec4899"},
+    {topic:"EVT", tip:"Needs continuous + CLOSED bounded interval. Open or unbounded → No EVT.", color:"#ec4899"},
+    {topic:"Rolle's / MVT", tip:"Check ALL hypotheses first. tan(x) on [0,π] fails at x=π/2.", color:"#f59e0b"},
+    {topic:"Inflection Points", tip:"f'' must CHANGE SIGN. Just equalling zero is NOT enough.", color:"#10b981"},
+    {topic:"2nd Deriv Test", tip:"Inconclusive when f''(c)=0 — fall back to the 1st Derivative Test.", color:"#10b981"},
+    {topic:"L'Hôpital's Rule", tip:"Only for 0/0 or ∞/∞. Check the form FIRST before applying.", color:"#14b8a6"},
+    {topic:"√ and x→−∞", tip:"√(x²) = |x| = −x when x < 0. The answer often flips sign!", color:"#0ea5e9"},
+  ].map(r=>`<div class="gotcha-row"><span class="gotcha-tag" style="background:${r.color}">${r.topic}</span><span class="gotcha-tip">${r.tip}</span></div>`).join("");
+
+  return `
+    <div class="home-header">
+      <div class="sub">Math 3A / 203S</div>
+      <h1>Chapter 4 Study Guide</h1>
+      <p>Tap any section to study visually. Quiz yourself when ready.</p>
+      <button class="quiz-btn" id="go-quiz">📝 Take Practice Quiz — 10 Questions</button>
+    </div>
+    <div class="grid">${cards}</div>
+    <div class="gotchas">
+      <h3>⚡ Quick-Reference: The 8 Biggest Exam Traps</h3>
+      ${rows}
+    </div>`;
 }
 
-return (
-<div style={{ fontFamily: “‘Inter’, system-ui, sans-serif”, maxWidth: 800, margin: “0 auto”, padding: 20 }}>
-<div style={{ textAlign: “center”, marginBottom: 28 }}>
-<div style={{ fontSize: 14, color: “#94a3b8”, marginBottom: 4 }}>Math 3A/203S</div>
-<h1 style={{ margin: 0, fontSize: 26, color: “#1e293b”, fontWeight: 700 }}>Chapter 4 — Visual Study Guide</h1>
-<p style={{ color: “#64748b”, margin: “8px 0 20px”, fontSize: 14 }}>Tap any section to study. Quiz yourself when ready.</p>
-<button onClick={() => setQuizMode(true)}
-style={{ background: “#6366f1”, color: “white”, border: “none”, borderRadius: 10,
-padding: “12px 28px”, fontSize: 15, fontWeight: 600, cursor: “pointer”, boxShadow: “0 4px 14px #6366f140” }}>
-📝 Take Practice Quiz (10 Qs)
-</button>
-</div>
+function renderSection() {
+  const s = sections.find(x => x.id === state.section);
+  const tabs = [
+    {id:"concept",label:"📊 Visual"},
+    {id:"formulas",label:"📐 Formulas"},
+    {id:"tricks",label:"💡 Tips"},
+    {id:"example",label:"✏️ Example"},
+  ];
+  const tabBtns = tabs.map(t=>`
+    <button class="tab-btn ${state.tab===t.id?"active":""}" data-tab="${t.id}"
+      style="${state.tab===t.id?`background:${s.color};`:""}">
+      ${t.label}
+    </button>`).join("");
 
-```
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-    {sections.map(s => (
-      <button key={s.id} onClick={() => { setActiveSection(s.id); setActiveTab("concept"); }}
-        style={{ background: "white", border: `2px solid ${s.color}30`, borderRadius: 14,
-          padding: 20, cursor: "pointer", textAlign: "left", transition: "all 0.2s",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-        <div style={{ fontSize: 28, marginBottom: 10 }}>{s.emoji}</div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: s.color, marginBottom: 6 }}>{s.title}</div>
-        <p style={{ margin: 0, fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>{s.concept.substring(0, 80)}...</p>
-        <div style={{ marginTop: 12, fontSize: 11, color: s.color, fontWeight: 600 }}>
-          Tap to study →
-        </div>
-      </button>
-    ))}
-  </div>
+  let content = "";
+  if (state.tab === "concept") {
+    content = `<div class="code-block"><pre>${escHtml(s.visual)}</pre></div>`;
 
-  <div style={{ background: "#f8fafc", borderRadius: 12, padding: 20, marginTop: 20 }}>
-    <h3 style={{ margin: "0 0 14px", color: "#1e293b", fontSize: 15 }}>⚡ Quick-Reference: The Biggest "Gotchas"</h3>
-    {[
-      ["Related Rates", "Plug in numbers AFTER differentiating, never before"],
-      ["Local vs Absolute", "Local extrema CANNOT be at endpoints — absolute ones CAN"],
-      ["EVT", "Needs continuous + CLOSED bounded interval. Open or unbounded = NO"],
-      ["Rolle's / MVT", "Check ALL hypotheses. tan(x) on [0,π] fails at x=π/2"],
-      ["Inflection Points", "f'' must CHANGE SIGN — just being zero isn't enough"],
-      ["2nd Deriv Test", "Inconclusive when f''(c)=0. Fall back to 1st Deriv Test"],
-      ["L'Hôpital's Rule", "Only for 0/0 or ∞/∞. Check the form FIRST"],
-      ["Limits: √ and x→-∞", "√(x²) = |x| = -x when x < 0 (don't forget the negative!)"],
-    ].map(([topic, tip], i) => (
-      <div key={i} style={{ display: "flex", gap: 12, marginBottom: 10, alignItems: "flex-start" }}>
-        <span style={{ background: "#6366f1", color: "white", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600, whiteSpace: "nowrap", marginTop: 1 }}>
-          {topic}
-        </span>
-        <span style={{ fontSize: 13, color: "#475569", lineHeight: 1.5 }}>{tip}</span>
-      </div>
-    ))}
-  </div>
-</div>
-```
-
-);
+} else if (state.tab === “formulas”) {
+content = `<div class="formula-list">${s.formulas.map(f=>`
+<div class="formula-item" style="border-left:4px solid ${s.color}">${escHtml(f)}</div>`).join("")}</div>`;
+} else if (state.tab === “tricks”) {
+content = `<div class="tips-list">${s.tricks.map(t=>`
+<div class="tip-item">💡 ${escHtml(t)}</div>`).join("")}</div>`;
+} else if (state.tab === “example”) {
+content = `<div class="code-block green"><pre>${escHtml(s.example)}</pre></div>`;
 }
+
+return ` <button class="back-btn" id="go-home">← All Sections</button> <div class="section-hero" style="background:${s.color}"> <div class="emoji">${s.emoji}</div> <h2>${s.title}</h2> <p>${s.concept}</p> </div> <div class="tabs">${tabBtns}</div> ${content}`;
+}
+
+function renderQuiz() {
+const pct = state.answered > 0 ? Math.round(state.score/state.answered*100) : 0;
+let resultHtml = “”;
+if (state.answered === quiz.length) {
+const sc = state.score;
+const bg = sc>=9?”#dcfce7”:sc>=7?”#fef9c3”:”#fee2e2”;
+const border = sc>=9?”#16a34a”:sc>=7?”#ca8a04”:”#dc2626”;
+const icon = sc>=9?“🎉”:sc>=7?“📚”:“💪”;
+const msg = sc>=9?“You’re test ready!”:sc>=7?“Almost there — review what you missed.”:“Keep studying — you’ve got this!”;
+resultHtml = `<div class="result-box" style="background:${bg};border:2px solid ${border}"> <div class="big">${icon}</div> <div class="score">${sc}/10 — ${pct}%</div> <div class="msg">${msg}</div> </div>`;
+}
+
+const qHtml = quiz.map((q,i) => {
+const ans = state.quizAnswers[i];
+const choiceHtml = q.choices.map((c,ci) => {
+let cls = “choice-btn”;
+if (ans !== undefined) {
+if (ci === q.correct) cls += “ correct”;
+else if (ci === ans && ci !== q.correct) cls += “ wrong”;
+}
+return `<button class="choice-btn ${ans!==undefined?(ci===q.correct?"correct":ci===ans?"wrong":""):""}" data-qi="${i}" data-ci="${ci}" ${ans!==undefined?"disabled":""}> <strong>${["A","B","C","D"][ci]}.</strong> ${escHtml(c)} </button>`;
+}).join(””);
+const exHtml = ans !== undefined ? `<div class="explanation ${ans===q.correct?"good":"bad"}"> ${ans===q.correct?"✅":"💡"} <strong>${ans===q.correct?"Correct! ":"Not quite. "}</strong>${escHtml(q.ex)} </div>` : “”;
+return `<div class="q-card"> <div class="q-num">Question ${i+1} of ${quiz.length}</div> <div class="q-text">${escHtml(q.q)}</div> ${choiceHtml}${exHtml} </div>`;
+}).join(””);
+
+return ` <div class="quiz-header"> <button class="back-btn" id="go-home" style="margin-bottom:0">← Back</button> <h2>📝 Practice Quiz</h2> <div class="score-badge">${state.score}/${state.answered} correct</div> </div> ${resultHtml}${qHtml}`;
+}
+
+function escHtml(str) {
+return str.replace(/&/g,”&”).replace(/</g,”<”).replace(/>/g,”>”);
+}
+
+function bindEvents() {
+document.querySelectorAll(”.card[data-section]”).forEach(el=>{
+el.addEventListener(“click”,()=>{ state.view=“section”; state.section=el.dataset.section; state.tab=“concept”; render(); });
+});
+document.querySelectorAll(”.tab-btn[data-tab]”).forEach(el=>{
+el.addEventListener(“click”,()=>{ state.tab=el.dataset.tab; render(); });
+});
+document.querySelectorAll(”.choice-btn[data-qi]”).forEach(el=>{
+el.addEventListener(“click”,()=>{
+const qi=+el.dataset.qi, ci=+el.dataset.ci;
+if(state.quizAnswers[qi]!==undefined) return;
+state.quizAnswers[qi]=ci;
+state.answered++;
+if(ci===quiz[qi].correct) state.score++;
+render();
+});
+});
+const goHome = document.getElementById(“go-home”);
+if(goHome) goHome.addEventListener(“click”,()=>{ state.view=“home”; state.section=null; render(); });
+const goQuiz = document.getElementById(“go-quiz”);
+if(goQuiz) goQuiz.addEventListener(“click”,()=>{ state.view=“quiz”; state.quizAnswers={}; state.score=0; state.answered=0; render(); });
+}
+
+render();
+</script>
+
+</body>
+</html>
